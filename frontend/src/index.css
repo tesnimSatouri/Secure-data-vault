@@ -294,3 +294,29 @@ p {
   font-size: 0.9rem;
   margin-top: auto;
 }
+
+/* Validation Styles */
+.form-group.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-group.checkbox input {
+  width: auto;
+  cursor: pointer;
+  accent-color: var(--accent-primary);
+}
+
+.form-group.checkbox label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.error-text {
+  color: var(--danger);
+  font-size: 0.8rem;
+  margin-top: -0.25rem;
+  margin-left: 0.25rem;
+}

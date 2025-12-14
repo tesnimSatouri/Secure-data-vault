@@ -56,7 +56,7 @@ function Login() {
             </section>
 
             <section className="form-container">
-                <form onSubmit={onSubmit} className="form">
+                <form onSubmit={onSubmit} className="form" noValidate>
                     <div className="form-group">
                         <input
                             type="email"
