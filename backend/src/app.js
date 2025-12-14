@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const vaultRoutes = require('./routes/vault');
 const gdprRoutes = require('./routes/gdpr');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 app.use(cors());
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/vault', vaultRoutes);
 app.use('/gdpr', gdprRoutes);
+app.use('/users', userRoutes);
 
 app.get('/', (req, res) => res.json({ message: 'Secure Data Vault API running...' }));
 

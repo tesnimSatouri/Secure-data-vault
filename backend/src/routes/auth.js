@@ -13,7 +13,7 @@ const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS || '10', 10);
 // register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, consent } = req.body;
+    const { name, email, password, consent } = req.body;
     if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
 
     const existing = await User.findOne({ email });
@@ -25,6 +25,7 @@ router.post('/register', async (req, res) => {
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
     const user = new User({
+      name,
       email,
       passwordHash: hash,
       consent: { accepted: !!consent, timestamp: consent ? new Date() : null },

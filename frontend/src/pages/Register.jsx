@@ -31,11 +31,7 @@ function Register() {
         if (isSuccess) {
             // Form cleaned up in render
         }
-
-        if (user) {
-            navigate('/')
-        }
-    }, [user, isError, isSuccess, message, navigate, dispatch])
+    }, [isError, isSuccess, message, navigate, dispatch])
 
     // Clean up state on unmount
     useEffect(() => {

@@ -47,6 +47,42 @@ export const verifyEmail = createAsyncThunk(
     }
 )
 
+export const updateProfile = createAsyncThunk(
+    'auth/updateProfile',
+    async (userData, thunkAPI) => {
+        try {
+            return await authService.updateProfile(userData)
+        } catch (error) {
+            const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString()
+            return thunkAPI.rejectWithValue(message)
+        }
+    }
+)
+
+export const changePassword = createAsyncThunk(
+    'auth/changePassword',
+    async (passwordData, thunkAPI) => {
+        try {
+            return await authService.changePassword(passwordData)
+        } catch (error) {
+            const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString()
+            return thunkAPI.rejectWithValue(message)
+        }
+    }
+)
+
+export const deleteAccount = createAsyncThunk(
+    'auth/deleteAccount',
+    async (_, thunkAPI) => {
+        try {
+            return await authService.deleteAccount()
+        } catch (error) {
+            const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString()
+            return thunkAPI.rejectWithValue(message)
+        }
+    }
+)
+
 const authSlice = createSlice({
     name: 'auth',
     initialState,
@@ -100,6 +136,51 @@ const authSlice = createSlice({
                 state.message = action.payload.message
             })
             .addCase(verifyEmail.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+            // Update Profile
+            .addCase(updateProfile.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(updateProfile.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.user = { ...state.user, name: action.payload.name } // Update local user state
+                localStorage.setItem('user', JSON.stringify({ ...state.user, name: action.payload.name }))
+                state.message = 'Profile updated successfully'
+            })
+            .addCase(updateProfile.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+            // Change Password
+            .addCase(changePassword.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(changePassword.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.message = action.payload.message
+            })
+            .addCase(changePassword.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+            // Delete Account
+            .addCase(deleteAccount.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(deleteAccount.fulfilled, (state) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.user = null
+                localStorage.removeItem('user')
+            })
+            .addCase(deleteAccount.rejected, (state, action) => {
                 state.isLoading = false
                 state.isError = true
                 state.message = action.payload
