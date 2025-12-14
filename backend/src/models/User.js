@@ -8,6 +8,9 @@ const UserSchema = new mongoose.Schema({
     accepted: { type: Boolean, default: false },
     timestamp: { type: Date }
   },
+  isVerified: { type: Boolean, default: false },
+  verificationToken: { type: String },
+  verificationTokenExpires: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 

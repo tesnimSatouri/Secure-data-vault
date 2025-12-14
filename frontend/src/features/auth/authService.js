@@ -1,13 +1,18 @@
 import api from '../../services/api'
 
 const register = async (data) => {
-  const res = await api.post('/auth/register', data)
-  return res.data
+    const res = await api.post('/auth/register', data)
+    return res.data
 }
 
 const login = async (data) => {
-  const res = await api.post('/auth/login', data)
-  return res.data
+    const res = await api.post('/auth/login', data)
+    return res.data
 }
 
-export default { register, login }
+const verifyEmail = async (token) => {
+    const res = await api.post('/auth/verify-email', { token })
+    return res.data
+}
+
+export default { register, login, verifyEmail }

@@ -3,13 +3,11 @@ import { Link } from 'react-router-dom'
 
 function Privacy() {
     return (
-        <>
-            <section className="heading">
-                <h1>Privacy Policy</h1>
-                <p>Your Data, Your Control</p>
-            </section>
+        <div className="card-container">
+            <h1 className="card-title">Privacy Policy</h1>
+            <p className="card-subtitle">Your Data, Your Control</p>
 
-            <section className="content" style={{ textAlign: 'left' }}>
+            <div className="card-content">
                 <h3>1. GDPR Compliance</h3>
                 <p>Secure Data Vault is fully compliant with the General Data Protection Regulation (GDPR). You have the right to access, rectify, and delete your data at any time.</p>
 
@@ -22,11 +20,13 @@ function Privacy() {
                 <h3>4. Data Deletion</h3>
                 <p>You can delete your account and all associated data instantly from your dashboard. This action is irreversible.</p>
 
-                <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-                    <Link to="/register" className="btn">Back to Register</Link>
+                <div className="text-center mt-4">
+                    <Link to="/register" className="btn btn-reverse">
+                        &larr; Back to Register
+                    </Link>
                 </div>
-            </section>
-        </>
+            </div>
+        </div>
     )
 }
 

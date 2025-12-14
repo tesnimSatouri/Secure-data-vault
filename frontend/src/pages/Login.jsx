@@ -82,7 +82,16 @@ function Login() {
                         />
                     </div>
 
-                    {isError && <div className="error-message">{message}</div>}
+                    {isError && (
+                        <div className="error-message">
+                            {message}
+                            {message.includes('verify') && (
+                                <p style={{ fontSize: '0.8rem', marginTop: '5px' }}>
+                                    Check your spam folder or register again if you didn't receive the email.
+                                </p>
+                            )}
+                        </div>
+                    )}
 
                     <div className="form-group">
                         <button type="submit" className="btn btn-block">

@@ -7,6 +7,7 @@ import NotFound from './pages/NotFound'
 import Privacy from './pages/Privacy'
 import Register from './pages/Register'
 import Terms from './pages/Terms'
+import VerifyEmail from './pages/VerifyEmail'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route
             path="/"
             element={
@@ -32,4 +34,6 @@ function App() {
   )
 }
 
+
 export default App
+// Force Rebuild 123456

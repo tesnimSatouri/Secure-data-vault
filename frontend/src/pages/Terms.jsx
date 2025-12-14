@@ -3,13 +3,11 @@ import { Link } from 'react-router-dom'
 
 function Terms() {
     return (
-        <>
-            <section className="heading">
-                <h1>Terms of Service</h1>
-                <p>Last updated: December 2025</p>
-            </section>
+        <div className="card-container">
+            <h1 className="card-title">Terms of Service</h1>
+            <p className="card-subtitle">Last updated: December 2025</p>
 
-            <section className="content" style={{ textAlign: 'left' }}>
+            <div className="card-content">
                 <h3>1. Acceptance of Terms</h3>
                 <p>By accessing and using Secure Data Vault, you accept and agree to be bound by the terms and provision of this agreement.</p>
 
@@ -22,11 +20,13 @@ function Terms() {
                 <h3>4. Termination</h3>
                 <p>We reserve the right to terminate your access to the service if you violate these terms.</p>
 
-                <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-                    <Link to="/register" className="btn">Back to Register</Link>
+                <div className="text-center mt-4">
+                    <Link to="/register" className="btn btn-reverse">
+                        &larr; Back to Register
+                    </Link>
                 </div>
-            </section>
-        </>
+            </div>
+        </div>
     )
 }
 

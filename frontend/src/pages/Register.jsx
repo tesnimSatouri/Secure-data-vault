@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
-import { register } from '../features/auth/authSlice'
+import { register, reset } from '../features/auth/authSlice'
 
 function Register() {
     const [formData, setFormData] = useState({
@@ -19,15 +19,30 @@ function Register() {
     const navigate = useNavigate()
     const dispatch = useDispatch()
 
-    const { user, isLoading, isError, message } = useSelector(
+    const { user, isLoading, isError, isSuccess, message } = useSelector(
         (state) => state.auth
     )
 
     useEffect(() => {
+        if (isError) {
+            // Error is handled in render
+        }
+
+        if (isSuccess) {
+            // Form cleaned up in render
+        }
+
         if (user) {
             navigate('/')
         }
-    }, [user, navigate])
+    }, [user, isError, isSuccess, message, navigate, dispatch])
+
+    // Clean up state on unmount
+    useEffect(() => {
+        return () => {
+            dispatch(reset())
+        }
+    }, [dispatch])
 
     const onChange = (e) => {
         const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
@@ -87,6 +102,26 @@ function Register() {
 
     if (isLoading) {
         return <div className="heading">Loading...</div>
+    }
+
+    if (isSuccess) {
+        return (
+            <div className="card-container text-center">
+                <span className="icon-large">📧</span>
+                <h1 className="card-title">Check your email</h1>
+                <p className="card-subtitle" style={{ marginBottom: '1rem' }}>
+                    We have sent a verification link to <strong>{email}</strong>.
+                </p>
+                <p style={{ marginBottom: '2rem', color: 'var(--text-secondary)' }}>
+                    Please check your inbox (and spam folder) and click the link to activate your account.
+                </p>
+                <div className="mt-4">
+                    <Link to="/login" className="btn btn-reverse">
+                        Proceed to Login
+                    </Link>
+                </div>
+            </div>
+        )
     }
 
     return (
