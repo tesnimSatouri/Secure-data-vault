@@ -6,7 +6,11 @@ const ALGO = 'aes-256-gcm';
 function getKey() {
   const keyHex = process.env.ENCRYPTION_KEY;
   if (!keyHex) throw new Error('ENCRYPTION_KEY not set');
-  return Buffer.from(keyHex, 'hex'); // expect 32 bytes
+  const keyBuffer = Buffer.from(keyHex, 'hex');
+  if (keyBuffer.length !== 32) {
+    throw new Error(`Invalid ENCRYPTION_KEY length: ${keyBuffer.length} bytes (expected 32)`);
+  }
+  return keyBuffer;
 }
 
 function encrypt(plainText) {

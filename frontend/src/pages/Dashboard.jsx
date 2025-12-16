@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import VaultList from '../components/vault/VaultList'
 
 function Dashboard() {
     const navigate = useNavigate()
@@ -16,12 +17,10 @@ function Dashboard() {
         <>
             <section className="heading">
                 <h1>Welcome {user && user.name}</h1>
-                <p>Dashboard</p>
+                <p>Secure Vault Dashboard</p>
             </section>
 
-            <section className="content">
-                <p>Your secure data vault is ready.</p>
-            </section>
+            <VaultList />
         </>
     )
 }
