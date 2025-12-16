@@ -120,12 +120,12 @@ router.post('/verify-2fa', async (req, res) => {
         os: `${result.os.name} ${result.os.version}`,
         device: result.device.model || 'Desktop/Unknown'
       },
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000)
     });
 
     await session.save();
 
-    const token = jwt.sign({ sub: user._id, email: user.email, sid: sessionId }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ sub: user._id, email: user.email, sid: sessionId }, JWT_SECRET, { expiresIn: '2h' });
     res.json({ token, userId: user._id, email: user.email });
 
   } catch (err) {
@@ -148,6 +148,74 @@ router.post('/verify-email', async (req, res) => {
     await user.save();
 
     res.json({ message: 'Email verified successfully. You can now login.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// forgot password
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      // Security: Don't reveal if user exists
+      return res.json({ message: 'If that email is registered, a reset link has been sent.' });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    user.resetPasswordToken = resetTokenHash;
+    user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+    await user.save();
+
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
+
+    const message = `You requested a password reset. Please go to this link to reset your password:\n\n${resetUrl}\n\nThis link expires in 1 hour.`;
+
+    await sendEmail(email, 'Password Reset Request', message);
+
+    res.json({ message: 'If that email is registered, a reset link has been sent.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// reset password
+router.post('/reset-password/:token', async (req, res) => {
+  try {
+    const resetTokenHash = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: resetTokenHash,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    console.log('[DEBUG] Reset attempt:', {
+      tokenReceived: req.params.token,
+      hashGenerated: resetTokenHash,
+      userFound: !!user
+    });
+
+    if (!user) {
+      console.log('[DEBUG] Invalid token or expired');
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ message: 'Password required' });
+
+    user.passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ message: 'Password reset successful. You can now login.' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

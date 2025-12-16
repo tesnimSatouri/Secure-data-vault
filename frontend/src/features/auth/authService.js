@@ -36,4 +36,14 @@ const verify2FA = async (data) => {
     return res.data
 }
 
-export default { register, login, verifyEmail, updateProfile, changePassword, deleteAccount, verify2FA }
+const forgotPassword = async (email) => {
+    const res = await api.post('/auth/forgot-password', { email })
+    return res.data
+}
+
+const resetPassword = async (data) => {
+    const res = await api.post(`/auth/reset-password/${data.token}`, { password: data.password })
+    return res.data
+}
+
+export default { register, login, verifyEmail, updateProfile, changePassword, deleteAccount, verify2FA, forgotPassword, resetPassword }

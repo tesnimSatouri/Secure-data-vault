@@ -116,6 +116,14 @@ function Login() {
                         </div>
                     )}
 
+                    {!twoFactorRequired && (
+                        <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
+                            <a href="/forgot-password" style={{ color: '#aaa', fontSize: '0.9rem', textDecoration: 'none' }}>
+                                Forgot Password?
+                            </a>
+                        </div>
+                    )}
+
                     <div className="form-group">
                         <button type="submit" className="btn btn-block">
                             {twoFactorRequired ? 'Verify Code' : 'Submit'}

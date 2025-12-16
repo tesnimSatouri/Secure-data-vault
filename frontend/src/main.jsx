@@ -4,6 +4,10 @@ import App from './App'
 import { store } from './app/store'
 import './index.css'
 
+import { injectStore } from './services/api'
+
+injectStore(store)
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <Provider store={store}>
     <App />

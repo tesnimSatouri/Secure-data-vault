@@ -4,11 +4,13 @@ import PublicRoute from './components/common/PublicRoute'
 import MainLayout from './components/layout/MainLayout'
 import ActiveSessions from './pages/ActiveSessions'
 import Dashboard from './pages/Dashboard'
+import ForgotPassword from './pages/ForgotPassword'
 import Login from './pages/Login'
 import NotFound from './pages/NotFound'
 import Privacy from './pages/Privacy'
 import Profile from './pages/Profile'
 import Register from './pages/Register'
+import ResetPassword from './pages/ResetPassword'
 import Terms from './pages/Terms'
 import VerifyEmail from './pages/VerifyEmail'
 
@@ -25,6 +27,8 @@ function App() {
               </PublicRoute>
             }
           />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+          <Route path="/reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
           <Route
             path="/register"
             element={

@@ -14,6 +14,8 @@ const UserSchema = new mongoose.Schema({
   verificationTokenExpires: { type: Date },
   twoFactorCode: { type: String },
   twoFactorExpires: { type: Date },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 
