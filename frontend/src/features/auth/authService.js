@@ -31,4 +31,9 @@ const deleteAccount = async () => {
     return res.data
 }
 
-export default { register, login, verifyEmail, updateProfile, changePassword, deleteAccount }
+const verify2FA = async (data) => {
+    const res = await api.post('/auth/verify-2fa', data)
+    return res.data
+}
+
+export default { register, login, verifyEmail, updateProfile, changePassword, deleteAccount, verify2FA }

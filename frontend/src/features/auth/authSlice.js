@@ -5,6 +5,8 @@ const user = JSON.parse(localStorage.getItem('user'))
 
 const initialState = {
     user: user || null,
+    twoFactorRequired: false,
+    tempUserId: null,
     isLoading: false,
     isSuccess: false,
     isError: false,
@@ -16,6 +18,18 @@ export const login = createAsyncThunk(
     async (data, thunkAPI) => {
         try {
             return await authService.login(data)
+        } catch (error) {
+            const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString()
+            return thunkAPI.rejectWithValue(message)
+        }
+    }
+)
+
+export const verify2FA = createAsyncThunk(
+    'auth/verify2FA',
+    async (data, thunkAPI) => {
+        try {
+            return await authService.verify2FA(data)
         } catch (error) {
             const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString()
             return thunkAPI.rejectWithValue(message)
@@ -105,10 +119,32 @@ const authSlice = createSlice({
             })
             .addCase(login.fulfilled, (state, action) => {
                 state.isLoading = false
-                state.user = action.payload
-                localStorage.setItem('user', JSON.stringify(action.payload))
+                if (action.payload.twoFactorRequired) {
+                    state.twoFactorRequired = true
+                    state.tempUserId = action.payload.userId
+                    state.message = 'Please check your email for the 2FA code.'
+                } else {
+                    state.user = action.payload
+                    localStorage.setItem('user', JSON.stringify(action.payload))
+                }
             })
             .addCase(login.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+            .addCase(verify2FA.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(verify2FA.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.user = action.payload
+                localStorage.setItem('user', JSON.stringify(action.payload))
+                state.twoFactorRequired = false
+                state.tempUserId = null
+            })
+            .addCase(verify2FA.rejected, (state, action) => {
                 state.isLoading = false
                 state.isError = true
                 state.message = action.payload

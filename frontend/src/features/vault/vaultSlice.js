@@ -99,9 +99,9 @@ const vaultSlice = createSlice({
             .addCase(updateVaultItem.fulfilled, (state, action) => {
                 state.isLoading = false
                 state.isSuccess = true
-                const index = state.items.findIndex(item => item._id === action.payload.id)
+                const index = state.items.findIndex(item => item._id === action.payload._id)
                 if (index !== -1) {
-                    state.items[index] = { ...state.items[index], ...action.payload, _id: action.payload.id }
+                    state.items[index] = action.payload
                 }
             })
             .addCase(deleteVaultItem.fulfilled, (state, action) => {

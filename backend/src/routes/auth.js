@@ -60,7 +60,6 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
-    // Check Verification
     if (!user.isVerified) {
       return res.status(403).json({ message: 'Please verify your email address before logging in.' });
     }
@@ -68,11 +67,47 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
+    // Generate 2FA Code
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.twoFactorCode = otp;
+    user.twoFactorExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await user.save();
+
+    await sendEmail(email, 'Your 2FA Login Code', `Your login code is: ${otp}. It expires in 10 minutes.`);
+
+    res.json({ message: '2FA code sent', userId: user._id, twoFactorRequired: true });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// verify 2fa
+router.post('/verify-2fa', async (req, res) => {
+  try {
+    const { userId, code } = req.body;
+    if (!userId || !code) return res.status(400).json({ message: 'User ID and code required' });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(400).json({ message: 'User not found' });
+
+    if (!user.twoFactorCode || !user.twoFactorExpires || Date.now() > user.twoFactorExpires) {
+      return res.status(400).json({ message: 'Invalid or expired code' });
+    }
+
+    if (user.twoFactorCode !== code) {
+      return res.status(400).json({ message: 'Invalid code' });
+    }
+
+    // Clear 2FA
+    user.twoFactorCode = undefined;
+    user.twoFactorExpires = undefined;
+    await user.save();
+
     // Create Session
     const parser = new UAParser(req.headers['user-agent']);
     const result = parser.getResult();
-
-    // Generate Session ID (using crypto because it's random and secure)
     const sessionId = crypto.randomBytes(32).toString('hex');
 
     const session = new Session({
@@ -85,13 +120,14 @@ router.post('/login', async (req, res) => {
         os: `${result.os.name} ${result.os.version}`,
         device: result.device.model || 'Desktop/Unknown'
       },
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days matches token
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     });
 
     await session.save();
 
     const token = jwt.sign({ sub: user._id, email: user.email, sid: sessionId }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, userId: user._id, email: user.email });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

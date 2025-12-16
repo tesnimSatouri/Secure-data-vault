@@ -121,68 +121,68 @@ const Spinner = styled.div`
 `
 
 const VaultItem = ({ item, onEdit }) => {
-    const dispatch = useDispatch()
-    const [showSecret, setShowSecret] = useState(false)
-    const [secretContent, setSecretContent] = useState('')
-    const [isLoadingSecret, setIsLoadingSecret] = useState(false)
+  const dispatch = useDispatch()
+  const [showSecret, setShowSecret] = useState(false)
+  const [secretContent, setSecretContent] = useState('')
+  const [isLoadingSecret, setIsLoadingSecret] = useState(false)
 
-    const handleDelete = () => {
-        if (window.confirm('Are you sure you want to permanently delete this secret?')) {
-            dispatch(deleteVaultItem(item._id))
-        }
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to permanently delete this secret?')) {
+      dispatch(deleteVaultItem(item._id))
     }
+  }
 
-    const toggleSecret = async () => {
-        if (showSecret) {
-            setShowSecret(false)
-            setSecretContent('')
-        } else {
-            setIsLoadingSecret(true)
-            try {
-                const response = await api.get(`/vault/${item._id}`)
-                setSecretContent(response.data.content)
-                setShowSecret(true)
-            } catch (error) {
-                // Error is logged by backend interceptor/console
-                alert('Could not decrypt info.')
-            } finally {
-                setIsLoadingSecret(false)
-            }
-        }
+  const toggleSecret = async () => {
+    if (showSecret) {
+      setShowSecret(false)
+      setSecretContent('')
+    } else {
+      setIsLoadingSecret(true)
+      try {
+        const response = await api.get(`/vault/${item._id}`)
+        setSecretContent(response.data.content)
+        setShowSecret(true)
+      } catch (error) {
+        const msg = error.response?.data?.message || error.message || 'Could not decrypt info.'
+        alert(`Decryption Failed: ${msg}`)
+      } finally {
+        setIsLoadingSecret(false)
+      }
     }
+  }
 
-    return (
-        <ItemCard>
-            <Header>
-                <div>
-                    <Label>
-                        🔒 {item.label || 'Untitled Secret'}
-                    </Label>
-                    <Meta>Last updated: {new Date(item.createdAt).toLocaleDateString()}</Meta>
-                </div>
-            </Header>
+  return (
+    <ItemCard>
+      <Header>
+        <div>
+          <Label>
+            🔒 {item.label || 'Untitled Secret'}
+          </Label>
+          <Meta>Last updated: {new Date(item.createdAt).toLocaleDateString()}</Meta>
+        </div>
+      </Header>
 
-            {showSecret && (
-                <SecretDisplay>
-                    {secretContent}
-                </SecretDisplay>
-            )}
+      {showSecret && (
+        <SecretDisplay>
+          {secretContent}
+        </SecretDisplay>
+      )}
 
-            <Actions>
-                <ActionButton onClick={toggleSecret} disabled={isLoadingSecret}>
-                    {isLoadingSecret ? <Spinner /> : (showSecret ? '🙈 Hide' : '👁️ Reveal')}
-                </ActionButton>
+      <Actions>
+        <ActionButton onClick={toggleSecret} disabled={isLoadingSecret}>
+          {isLoadingSecret ? <Spinner /> : (showSecret ? '🙈 Hide' : '👁️ Reveal')}
+        </ActionButton>
 
-                <ActionButton onClick={() => onEdit(item)}>
-                    ✏️ Edit
-                </ActionButton>
+        <ActionButton onClick={() => onEdit(item)}>
+          ✏️ Edit
+        </ActionButton>
 
-                <ActionButton variant="danger" onClick={handleDelete}>
-                    🗑️ Delete
-                </ActionButton>
-            </Actions>
-        </ItemCard>
-    )
+        <ActionButton variant="danger" onClick={handleDelete}>
+          🗑️ Delete
+        </ActionButton>
+      </Actions>
+    </ItemCard>
+  )
 }
 
 export default VaultItem

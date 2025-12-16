@@ -1,22 +1,34 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { login } from '../features/auth/authSlice'
+import { login, verify2FA } from '../features/auth/authSlice'
 
 function Login() {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
+        code: ''
     })
 
-    const { email, password } = formData
+    const { email, password, code } = formData
 
     const navigate = useNavigate()
     const dispatch = useDispatch()
 
-    const { user, isLoading, isError, message } = useSelector(
+    const { user, isLoading, isError, message, twoFactorRequired, tempUserId } = useSelector(
         (state) => state.auth
     )
+
+    useEffect(() => {
+        if (user) {
+            navigate('/')
+        }
+
+        // Reset state on unmount or when leaving (optional)
+        return () => {
+            // dispatch(reset()) 
+        }
+    }, [user, navigate, dispatch])
 
     const onChange = (e) => {
         setFormData((prevState) => ({
@@ -28,12 +40,12 @@ function Login() {
     const onSubmit = (e) => {
         e.preventDefault()
 
-        const userData = {
-            email,
-            password,
+        if (twoFactorRequired) {
+            dispatch(verify2FA({ userId: tempUserId, code }))
+        } else {
+            const userData = { email, password }
+            dispatch(login(userData))
         }
-
-        dispatch(login(userData))
     }
 
     if (isLoading) {
@@ -43,38 +55,55 @@ function Login() {
     return (
         <>
             <section className="heading">
-                <h1>
-                    Login
-                </h1>
-                <p>Login to your secure vault</p>
+                <h1>{twoFactorRequired ? 'Two-Factor Auth' : 'Login'}</h1>
+                <p>{twoFactorRequired ? 'Enter the 6-digit code sent to your email' : 'Login to your secure vault'}</p>
             </section>
 
             <section className="form-container">
                 <form onSubmit={onSubmit} className="form" noValidate>
-                    <div className="form-group">
-                        <input
-                            type="email"
-                            className="form-control"
-                            id="email"
-                            name="email"
-                            value={email}
-                            placeholder="Enter your email"
-                            onChange={onChange}
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="password"
-                            className="form-control"
-                            id="password"
-                            name="password"
-                            value={password}
-                            placeholder="Enter password"
-                            onChange={onChange}
-                            required
-                        />
-                    </div>
+                    {!twoFactorRequired ? (
+                        <>
+                            <div className="form-group">
+                                <input
+                                    type="email"
+                                    className="form-control"
+                                    id="email"
+                                    name="email"
+                                    value={email}
+                                    placeholder="Enter your email"
+                                    onChange={onChange}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    id="password"
+                                    name="password"
+                                    value={password}
+                                    placeholder="Enter password"
+                                    onChange={onChange}
+                                    required
+                                />
+                            </div>
+                        </>
+                    ) : (
+                        <div className="form-group">
+                            <input
+                                type="text"
+                                className="form-control"
+                                id="code"
+                                name="code"
+                                value={code}
+                                placeholder="Enter 6-digit Code"
+                                onChange={onChange}
+                                required
+                                maxLength="6"
+                                style={{ letterSpacing: '8px', textAlign: 'center', fontSize: '1.2rem' }}
+                            />
+                        </div>
+                    )}
 
                     {isError && (
                         <div className="error-message">
@@ -89,7 +118,7 @@ function Login() {
 
                     <div className="form-group">
                         <button type="submit" className="btn btn-block">
-                            Submit
+                            {twoFactorRequired ? 'Verify Code' : 'Submit'}
                         </button>
                     </div>
                 </form>

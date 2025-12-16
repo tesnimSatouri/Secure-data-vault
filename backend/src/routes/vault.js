@@ -22,7 +22,7 @@ router.post('/', auth, async (req, res) => {
       tag: encrypted.tag
     });
     await item.save();
-    res.status(201).json({ id: item._id, label: item.label, createdAt: item.createdAt });
+    res.status(201).json({ _id: item._id, label: item.label, createdAt: item.createdAt });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -73,9 +73,8 @@ router.put('/:id', auth, async (req, res) => {
 
     await item.save();
 
-    // Return updated item (without sensitive data unless we want to return it decrypted immediately, 
-    // but usually list view doesn't show it. Let's return basics.)
-    res.json({ id: item._id, label: item.label, createdAt: item.createdAt });
+    // Return updated item
+    res.json({ _id: item._id, label: item.label, createdAt: item.createdAt });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
