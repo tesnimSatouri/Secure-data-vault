@@ -1,22 +1,87 @@
-import { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { createVaultItem, updateVaultItem } from '../../features/vault/vaultSlice'
+import { useEffect, useState } from 'react';
+import { FiBriefcase, FiCheck, FiChevronDown, FiCreditCard, FiFolder, FiUser } from 'react-icons/fi';
+import { useDispatch } from 'react-redux';
+import styled from 'styled-components';
+import { createVaultItem, updateVaultItem } from '../../features/vault/vaultSlice';
 import api from '../../services/api'; // To fetch decrypted content if needed
-import Modal from '../common/Modal'
+import Modal from '../common/Modal';
+
+const categoryIcons = {
+    'General': <FiFolder />,
+    'Work': <FiBriefcase />,
+    'Personal': <FiUser />,
+    'Finance': <FiCreditCard />
+}
+
+const SelectHeader = styled.div`
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+    user-select: none;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+`
+
+const SelectList = styled.div`
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1f2937;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+    z-index: 10;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+`
+
+const SelectOption = styled.div`
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: ${props => props.$isSelected ? 'white' : 'rgba(255, 255, 255, 0.7)'};
+    background: ${props => props.$isSelected ? 'rgba(255, 255, 255, 0.05)' : 'transparent'};
+    transition: all 0.2s;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+`
 
 const VaultForm = ({ isOpen, onClose, itemToEdit }) => {
     const dispatch = useDispatch()
     const [formData, setFormData] = useState({
         label: '',
-        content: ''
+        content: '',
+        category: 'General'
     })
     const [isLoading, setIsLoading] = useState(false)
+    const [isCategoryOpen, setIsCategoryOpen] = useState(false)
 
-    const { label, content } = formData
+    const { label, content, category } = formData
 
     useEffect(() => {
         if (itemToEdit) {
-            setFormData(prev => ({ ...prev, label: itemToEdit.label, content: '' }))
+            setFormData(prev => ({
+                ...prev,
+                label: itemToEdit.label,
+                content: '',
+                category: itemToEdit.category || 'General'
+            }))
             // Optionally fetch secret to prefill
             const fetchSecret = async () => {
                 setIsLoading(true)
@@ -31,7 +96,7 @@ const VaultForm = ({ isOpen, onClose, itemToEdit }) => {
             }
             fetchSecret()
         } else {
-            setFormData({ label: '', content: '' })
+            setFormData({ label: '', content: '', category: 'General' })
         }
     }, [itemToEdit, isOpen]) // Reset when opening/changing item
 
@@ -47,12 +112,12 @@ const VaultForm = ({ isOpen, onClose, itemToEdit }) => {
         if (itemToEdit) {
             dispatch(updateVaultItem({
                 id: itemToEdit._id,
-                itemData: { label, content }
+                itemData: { label, content, category }
             }))
         } else {
-            dispatch(createVaultItem({ label, content }))
+            dispatch(createVaultItem({ label, content, category }))
         }
-        setFormData({ label: '', content: '' })
+        setFormData({ label: '', content: '', category: 'General' })
         onClose()
     }
 
@@ -75,6 +140,41 @@ const VaultForm = ({ isOpen, onClose, itemToEdit }) => {
                         placeholder="Enter a label"
                         required
                     />
+                </div>
+                <div className="form-group" style={{ marginBottom: '1rem', position: 'relative' }}>
+                    <label style={{ color: 'var(--text-secondary)' }}>Category</label>
+
+                    <SelectHeader onClick={() => setIsCategoryOpen(!isCategoryOpen)}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            {categoryIcons[category]}
+                            <span>{category}</span>
+                        </div>
+                        <FiChevronDown style={{
+                            transform: isCategoryOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.2s ease'
+                        }} />
+                    </SelectHeader>
+
+                    {isCategoryOpen && (
+                        <SelectList>
+                            {Object.keys(categoryIcons).map((cat) => (
+                                <SelectOption
+                                    key={cat}
+                                    onClick={() => {
+                                        setFormData(prev => ({ ...prev, category: cat }))
+                                        setIsCategoryOpen(false)
+                                    }}
+                                    $isSelected={category === cat}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        {categoryIcons[cat]}
+                                        <span>{cat}</span>
+                                    </div>
+                                    {category === cat && <FiCheck color="#4f46e5" />}
+                                </SelectOption>
+                            ))}
+                        </SelectList>
+                    )}
                 </div>
                 <div className="form-group" style={{ marginTop: '1rem' }}>
                     <label htmlFor="content" style={{ color: 'var(--text-secondary)' }}>Secret Content</label>

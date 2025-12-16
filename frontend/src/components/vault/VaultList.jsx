@@ -71,11 +71,38 @@ const EmptyState = styled.div`
   }
 `
 
+const FilterContainer = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+`
+
+const FilterButton = styled.button`
+  background: ${props => props.$active ? 'rgba(255, 255, 255, 0.1)' : 'transparent'};
+  color: ${props => props.$active ? '#fff' : 'rgba(255, 255, 255, 0.6)'};
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid ${props => props.$active ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)'};
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+
+  &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+  }
+`
+
 const VaultList = () => {
   const dispatch = useDispatch()
   const { items, isLoading, isError, message } = useSelector((state) => state.vault)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
+
+
+  const [filter, setFilter] = useState('All')
 
   useEffect(() => {
     dispatch(getVaultItems())
@@ -95,6 +122,14 @@ const VaultList = () => {
     setIsModalOpen(true)
   }
 
+  const filteredItems = items.filter(item => {
+    if (filter === 'All') return true
+    const cat = item.category || 'General'
+    return cat === filter
+  })
+
+
+
   if (isLoading && items.length === 0) {
     return <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}>decrypting vault...</div>
   }
@@ -108,11 +143,23 @@ const VaultList = () => {
         </AddButton>
       </Header>
 
+      <FilterContainer>
+        {['All', 'General', 'Work', 'Personal', 'Finance'].map(cat => (
+          <FilterButton
+            key={cat}
+            $active={filter === cat}
+            onClick={() => setFilter(cat)}
+          >
+            {cat}
+          </FilterButton>
+        ))}
+      </FilterContainer>
+
       {isError && <div className="error-message" style={{ marginBottom: '1rem' }}>{message}</div>}
 
-      {items.length > 0 ? (
+      {filteredItems.length > 0 ? (
         <Grid>
-          {items.map((item) => (
+          {filteredItems.map((item) => (
             <VaultItem
               key={item._id}
               item={item}

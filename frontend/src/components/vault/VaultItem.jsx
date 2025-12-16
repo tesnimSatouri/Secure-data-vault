@@ -59,6 +59,32 @@ const Meta = styled.p`
   padding-left: 2rem; /* Align with text not icon */
 `
 
+const Badge = styled.span`
+  background: ${props => {
+    if (props.type === 'Work') return 'rgba(59, 130, 246, 0.2)'
+    if (props.type === 'Finance') return 'rgba(16, 185, 129, 0.2)'
+    if (props.type === 'Personal') return 'rgba(139, 92, 246, 0.2)'
+    return 'rgba(255, 255, 255, 0.1)'
+  }};
+  color: ${props => {
+    if (props.type === 'Work') return '#60a5fa'
+    if (props.type === 'Finance') return '#34d399'
+    if (props.type === 'Personal') return '#a78bfa'
+    return '#9ca3af'
+  }};
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+  border: 1px solid ${props => {
+    if (props.type === 'Work') return 'rgba(59, 130, 246, 0.3)'
+    if (props.type === 'Finance') return 'rgba(16, 185, 129, 0.3)'
+    if (props.type === 'Personal') return 'rgba(139, 92, 246, 0.3)'
+    return 'rgba(255, 255, 255, 0.2)'
+  }};
+`
+
 const Actions = styled.div`
   display: flex;
   gap: 0.75rem;
@@ -157,6 +183,7 @@ const VaultItem = ({ item, onEdit }) => {
         <div>
           <Label>
             🔒 {item.label || 'Untitled Secret'}
+            <Badge type={item.category || 'General'}>{item.category || 'General'}</Badge>
           </Label>
           <Meta>Last updated: {new Date(item.createdAt).toLocaleDateString()}</Meta>
         </div>

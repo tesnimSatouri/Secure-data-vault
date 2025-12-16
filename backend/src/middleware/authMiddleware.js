@@ -17,7 +17,7 @@ const protect = async (req, res, next) => {
                 return res.status(401).json({ message: 'Session expired or revoked' });
             }
 
-            req.user = decoded; // { sub: userId, email: ... }
+            req.user = { ...decoded, _id: decoded.sub }; // Ensure _id is available
             next();
         } catch (error) {
             console.error(error);
