@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import PublicRoute from './components/common/PublicRoute'
 import MainLayout from './components/layout/MainLayout'
+import ActiveSessions from './pages/ActiveSessions'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import NotFound from './pages/NotFound'
@@ -52,6 +53,7 @@ function App() {
             }
           />
           <Route path="*" element={<NotFound />} />
+          <Route path="/sessions" element={<ProtectedRoute><ActiveSessions /></ProtectedRoute>} />
         </Routes>
       </MainLayout>
     </BrowserRouter>

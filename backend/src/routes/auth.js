@@ -4,7 +4,10 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Session = require('../models/Session');
 const sendEmail = require('../utils/sendEmail');
+const UAParser = require('ua-parser-js');
+const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
@@ -62,10 +65,32 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ message: 'Please verify your email address before logging in.' });
     }
 
-    const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    // Create Session
+    const parser = new UAParser(req.headers['user-agent']);
+    const result = parser.getResult();
+
+    // Generate Session ID (using crypto because it's random and secure)
+    const sessionId = crypto.randomBytes(32).toString('hex');
+
+    const session = new Session({
+      user: user._id,
+      sid: sessionId,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      deviceInfo: {
+        browser: `${result.browser.name} ${result.browser.version}`,
+        os: `${result.os.name} ${result.os.version}`,
+        device: result.device.model || 'Desktop/Unknown'
+      },
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days matches token
+    });
+
+    await session.save();
+
+    const token = jwt.sign({ sub: user._id, email: user.email, sid: sessionId }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, userId: user._id, email: user.email });
   } catch (err) {
     console.error(err);
@@ -87,6 +112,19 @@ router.post('/verify-email', async (req, res) => {
     await user.save();
 
     res.json({ message: 'Email verified successfully. You can now login.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// logout
+router.post('/logout', protect, async (req, res) => {
+  try {
+    if (req.user && req.user.sid) {
+      await Session.findOneAndDelete({ sid: req.user.sid });
+    }
+    res.json({ message: 'Logged out successfully' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

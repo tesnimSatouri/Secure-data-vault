@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import Modal from '../components/common/Modal'
 import { changePassword, deleteAccount, reset, updateProfile } from '../features/auth/authSlice'
+import { fetchSessions, revokeSession } from '../features/session/sessionSlice'
 
 function Profile() {
     const { user, isLoading, isError, isSuccess, message } = useSelector((state) => state.auth)
+    const { list: sessions, isLoading: sessionsLoading } = useSelector((state) => state.session)
 
     const [name, setName] = useState(user?.name || '')
     const [passwords, setPasswords] = useState({
@@ -38,6 +40,10 @@ function Profile() {
         }
     }, [isSuccess, dispatch])
 
+    useEffect(() => {
+        dispatch(fetchSessions())
+    }, [dispatch])
+
     const handleUpdateProfile = (e) => {
         e.preventDefault()
         dispatch(updateProfile({ name }))
@@ -65,6 +71,12 @@ function Profile() {
     const handleDeleteAccount = () => {
         dispatch(deleteAccount())
         setIsDeleteModalOpen(false)
+    }
+
+    const handleRevokeSession = (id) => {
+        if (window.confirm('Are you sure you want to revoke this session?')) {
+            dispatch(revokeSession(id))
+        }
     }
 
     if (isLoading) {
@@ -142,6 +154,66 @@ function Profile() {
                             <button type="submit" className="btn btn-reverse btn-block">Change Password</button>
                         </div>
                     </form>
+                </section>
+
+                <hr style={{ borderColor: 'var(--border-glass)', margin: '2rem 0' }} />
+
+                <section>
+                    <h3>Active Sessions</h3>
+                    <div style={{ marginTop: '1rem' }}>
+                        {sessionsLoading ? (
+                            <p>Loading sessions...</p>
+                        ) : (
+                            sessions && sessions.length > 0 ? (
+                                sessions.map(session => (
+                                    <div key={session.id} style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '1rem',
+                                        borderBottom: '1px solid var(--border-glass)',
+                                        marginBottom: '0.5rem'
+                                    }}>
+                                        <div>
+                                            <p style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                                                {session.device}
+                                                {session.isCurrent && (
+                                                    <span style={{
+                                                        marginLeft: '0.5rem',
+                                                        fontSize: '0.7em',
+                                                        background: 'var(--success)',
+                                                        padding: '2px 6px',
+                                                        borderRadius: '4px',
+                                                        color: 'white'
+                                                    }}>
+                                                        Current
+                                                    </span>
+                                                )}
+                                            </p>
+                                            <p style={{ fontSize: '0.85em', color: 'var(--text-secondary)' }}>
+                                                {session.browser} on {session.os}
+                                            </p>
+                                            <p style={{ fontSize: '0.75em', color: 'var(--text-secondary)' }}>
+                                                Last active: {new Date(session.lastActive).toLocaleString()}
+                                            </p>
+                                        </div>
+                                        {!session.isCurrent && (
+                                            <button
+                                                type="button"
+                                                className="btn btn-reverse"
+                                                onClick={() => handleRevokeSession(session.id)}
+                                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.85em' }}
+                                            >
+                                                Revoke
+                                            </button>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <p>No active sessions found.</p>
+                            )
+                        )}
+                    </div>
                 </section>
 
                 <hr style={{ borderColor: 'var(--border-glass)', margin: '2rem 0' }} />

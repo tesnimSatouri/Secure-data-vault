@@ -1,13 +1,22 @@
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 
-const protect = (req, res, next) => {
+const Session = require('../models/Session');
+
+const protect = async (req, res, next) => {
     let token;
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];
             const decoded = jwt.verify(token, JWT_SECRET);
+
+            // Check if session still exists
+            const session = await Session.findOne({ sid: decoded.sid });
+            if (!session) {
+                return res.status(401).json({ message: 'Session expired or revoked' });
+            }
+
             req.user = decoded; // { sub: userId, email: ... }
             next();
         } catch (error) {
