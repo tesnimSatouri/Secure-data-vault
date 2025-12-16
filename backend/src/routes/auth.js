@@ -8,13 +8,14 @@ const Session = require('../models/Session');
 const sendEmail = require('../utils/sendEmail');
 const UAParser = require('ua-parser-js');
 const { protect } = require('../middleware/authMiddleware');
+const { loginLimiter, createAccountLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS || '10', 10);
 
 // register
-router.post('/register', async (req, res) => {
+router.post('/register', createAccountLimiter, async (req, res) => {
   try {
     const { name, email, password, consent } = req.body;
     if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
@@ -52,7 +53,7 @@ router.post('/register', async (req, res) => {
 });
 
 // login
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
